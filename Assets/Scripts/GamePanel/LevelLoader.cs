@@ -9,6 +9,7 @@ public class LevelLoader : MonoBehaviour
     [SerializeField] private GameLevelsData _gameLevelsData;
     [SerializeField] private CardBundleData[] _cardBundleData;
     [SerializeField] private UImanager _uiManager;
+    [SerializeField] private AnswerOptionCreator _answerOptionCreator;
     
     private TaskCreator _taskCreator;
 
@@ -18,9 +19,9 @@ public class LevelLoader : MonoBehaviour
 
     void Start()
     {
+        _answerOptionCreator.SetOptionsCapacity(_cardBundleData);
         _taskCreator = GetComponent<TaskCreator>();
         CreateNewLevel();
-        Debug.Log(_bundles);
     }
 
 
@@ -28,16 +29,15 @@ public class LevelLoader : MonoBehaviour
     {
         if (_level > _maxLevel)
         {
-            foreach(CardBundleData cardBundle in _cardBundleData)
-            {
-                cardBundle.ClearUnusedAnswers();
-            }
             _uiManager.ShowRestartUI();
             return;
         }
 
-        CardBundleData bundleData = _cardBundleData[Random.Range(0, _bundles)];
-        _taskCreator.Create(_gameLevelsData.LevelData[_level], bundleData);
+        int bundleIndex = Random.Range(0, _bundles);
+        CardBundleData bundleData = _cardBundleData[bundleIndex];
+        int bundleAnswerIndex = _answerOptionCreator.GetUnusedAnswerOption(bundleIndex);
+
+        _taskCreator.Create(_gameLevelsData.LevelData[_level], bundleData, bundleAnswerIndex);
         _level++;
     }
 }

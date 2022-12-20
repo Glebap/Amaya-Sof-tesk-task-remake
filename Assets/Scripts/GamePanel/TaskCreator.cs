@@ -10,19 +10,17 @@ public class TaskCreator : MonoBehaviour
 
     private int[] _random;
     private int _taskAnswer;
-    private int bundleAnswerIndex;
 
-    public void Create(LevelData levelData, CardBundleData cardBundle)
+    public void Create(LevelData levelData, CardBundleData cardBundle, int bundleAnswerIndex)
     {
         ClearPanel();
-
         GetComponent<GridLayoutGroup>().constraintCount = levelData.Columns;
-
-        bundleAnswerIndex = cardBundle.GetAnswerIndex();
-        RandomShuffle(cardBundle.CardData.Length, bundleAnswerIndex);
+        
         _taskAnswer = Random.Range(0, levelData.Quantity);
-        _random[_taskAnswer] = bundleAnswerIndex;
+        RandomShuffle(cardBundle.CardData.Length, bundleAnswerIndex);
+
         InitializeCards(levelData.Quantity, cardBundle);
+
         _taskTextCreator.ChangeTaskText(cardBundle.CardData[bundleAnswerIndex].Identifier);
 
     }
@@ -33,11 +31,10 @@ public class TaskCreator : MonoBehaviour
         {
             Card card = Instantiate(_card,
                                     transform.position,
-                                    Quaternion.identity,
-                                    transform);
+                                    Quaternion.identity);
+            card.transform.SetParent(this.transform, false);
 
             card.Init(cardBundle.CardData[_random[cardIndex]].Sprite, cardIndex == _taskAnswer ? true : false);
-
         }
     }
 
@@ -51,13 +48,13 @@ public class TaskCreator : MonoBehaviour
 
     private void RandomShuffle(int max, int answerIndex)
     {
-        var numberList = Enumerable.Range(0, max).ToList();
-        numberList.RemoveAt(answerIndex);
-        _random = numberList.ToArray();  
-        Shuffle(_random);                        
+        _random = Enumerable.Range(0, max).ToArray();
+        AnswerOptionCreator.RemoveAt(ref _random, answerIndex);
+        Shuffle(_random);   
+        _random[_taskAnswer] = answerIndex;                     
     }
 
-    private void Shuffle<T>(T[] array)
+    public static void Shuffle<T>(T[] array)
     {
         int n = array.Length;
         for (int i = 0; i < (n - 1); i++)
